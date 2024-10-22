@@ -6,4 +6,6 @@ module dev.nemi.bricksfx {
 
     opens dev.nemi.bricksfx to javafx.fxml;
     exports dev.nemi.bricksfx;
+    exports dev.nemi.bricksfx.model;
+    opens dev.nemi.bricksfx.model to javafx.fxml;
 }

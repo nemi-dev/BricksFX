@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
-import static dev.nemi.bricksfx.Bricks.CELL_SIZE;
+import static dev.nemi.bricksfx.model.Bricks.CELL_SIZE;
 
 public class Bresenham {
     @NotNull
