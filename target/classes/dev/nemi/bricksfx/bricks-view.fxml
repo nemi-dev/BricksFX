@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.canvas.*?>
+<?import javafx.scene.layout.*?>
+
+<Pane
+        maxHeight="-Infinity"
+        maxWidth="-Infinity"
+        minHeight="-Infinity"
+        minWidth="-Infinity"
+        prefHeight="800.0"
+        prefWidth="800.0"
+        style="-fx-background-color: black;"
+        xmlns="http://javafx.com/javafx/17.0.12"
+        xmlns:fx="http://javafx.com/fxml/1"
+fx:controller="dev.nemi.bricksfx.CanvasControl">
+    <Canvas fx:id="canvas" height="800.0" width="800.0" />
+</Pane>
