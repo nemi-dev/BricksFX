@@ -1,5 +1,6 @@
 package dev.nemi.bricksfx;
 
+import dev.nemi.bricksfx.model.Bricks;
 import javafx.animation.AnimationTimer;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
@@ -15,11 +16,8 @@ public class CanvasControl {
     @FXML
     public void initialize() {
 
-        System.out.println("Canvas initialized.");
         var g = canvas.getGraphicsContext2D();
-
-        timer = new Loop(g);
-
+        timer = new Loop(g, new Bricks());
         timer.start();
     }
 
