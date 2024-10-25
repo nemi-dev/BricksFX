@@ -55,6 +55,7 @@ public class Bricks {
 //      }
       if (!map.isEmpty()) {
         var head = map.getFirst();
+        ball.requestReflectY(head.y() * CELL_SIZE);
         matrix[head.y()][head.x()] = 0;
       }
     }

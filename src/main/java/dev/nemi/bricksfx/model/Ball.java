@@ -4,8 +4,8 @@ public class Ball {
   float x, y, dx, dy;
   int[][] trails;
 
-  Float reflectXAt = null;
-  Float reflectYAt = null;
+  private Float reflectXAt = null;
+  private Float reflectYAt = null;
   public Ball(float x, float y, float dx, float dy) {
     this.x = x;
     this.y = y;
@@ -34,11 +34,21 @@ public class Ball {
       fy = getReflect(py, 800);
       dy = -dy;
     }
+    if (reflectXAt != null) {
+      fx = getReflect(px, reflectXAt);
+      dx = -dx;
+      reflectXAt = null;
+    }
+    if (reflectYAt != null) {
+      fy = getReflect(py, reflectYAt);
+      dy = -dy;
+      reflectYAt = null;
+    }
 
     x = fx;
     y = fy;
-    reflectXAt = null;
-    reflectYAt = null;
+//    reflectXAt = null;
+//    reflectYAt = null;
   }
 
   float getReflect(float predict, float onto) {
@@ -46,11 +56,11 @@ public class Ball {
   }
 
   public void requestReflectX(float k) {
-    reflectXAt = k;
+    if (reflectXAt == null) reflectXAt = k;
   }
 
   public void requestReflectY(float k) {
-    reflectYAt = k;
+    if (reflectYAt == null) reflectYAt = k;
   }
 
   void rebounce(float r) {
