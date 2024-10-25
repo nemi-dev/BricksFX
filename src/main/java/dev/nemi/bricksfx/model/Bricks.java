@@ -49,9 +49,13 @@ public class Bricks {
     // collision test
     for (Ball ball : balls) {
       ArrayList<Pair> map = Bresenham.wouldHit(ball.x, ball.y, ball.dx, ball.dy, matrix);
-      if (!map.isEmpty()) System.out.println(map.getFirst());
-      for (Pair pair : map) {
-        matrix[pair.y()][pair.x()] = 0;
+//      if (!map.isEmpty()) System.out.println(map.getFirst());
+//      for (Pair pair : map) {
+//        matrix[pair.y()][pair.x()] = 0;
+//      }
+      if (!map.isEmpty()) {
+        var head = map.getFirst();
+        matrix[head.y()][head.x()] = 0;
       }
     }
     for (Ball ball : balls) {
