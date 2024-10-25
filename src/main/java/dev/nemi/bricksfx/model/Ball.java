@@ -13,8 +13,31 @@ public class Ball {
     }
 
     public void update(long now, long before) {
-        x += dx;
-        y += dy;
+        float px = x + dx, py = y + dy;
+
+        if (px < 0) {
+            x = getReflect(px, 0);
+            dx = -dx;
+        }
+        if (px > 800) {
+            x = getReflect(px, 800);
+            dx = -dx;
+        }
+        if (py < 0) {
+            y = getReflect(py, 0);
+            dy = -dy;
+        }
+        if (py > 800) {
+            y = getReflect(py, 800);
+            dy = -dy;
+        }
+
+        x = px;
+        y = py;
+    }
+
+    float getReflect(float predict, float onto) {
+        return onto * 2 - predict;
     }
 
     void rebounce(float r) {

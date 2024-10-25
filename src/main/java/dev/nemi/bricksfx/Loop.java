@@ -4,6 +4,7 @@ import dev.nemi.bricksfx.model.Bricks;
 import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.GraphicsContext;
 
+
 public class Loop extends AnimationTimer {
     private final GraphicsContext g;
     private final Bricks bricks;
