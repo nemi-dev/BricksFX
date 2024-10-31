@@ -1,13 +1,15 @@
 package dev.nemi.bricksfx.model;
 
 import dev.nemi.bricksfx.Bresenham;
-import dev.nemi.bricksfx.Pair;
+import dev.nemi.bricksfx.IntXY;
+import dev.nemi.bricksfx.Point;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.Vector;
 
 public class Bricks {
   public static final int CELL_SIZE = 5;
@@ -17,6 +19,8 @@ public class Bricks {
   private int[][] matrix;
   private LinkedList<Ball> balls;
   private long last = 0L;
+
+  private Vector<IntXY> brickBreakRequests = new Vector<>();
 
   public Bricks() {
     init();
@@ -34,9 +38,9 @@ public class Bricks {
 
     Random random = new Random();
     double vel = 18;
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 9; i++) {
       double angle = random.nextDouble() * Math.PI * 2;
-      addBall(400f, 400f, (float) (vel * Math.cos(angle)), (float) (vel * Math.sin(angle)));
+      addBall(400f, 600f, (float) (vel * Math.cos(angle)), (float) (vel * Math.sin(angle)));
     }
 
   }
@@ -48,16 +52,22 @@ public class Bricks {
   public void update(long now) {
     // collision test
     for (Ball ball : balls) {
-      ArrayList<Pair> map = Bresenham.wouldHit(ball.x, ball.y, ball.dx, ball.dy, matrix);
+      ArrayList<IntXY> map = Bresenham.wouldHit(ball.x, ball.y, ball.dx, ball.dy, matrix);
       if (!map.isEmpty()) {
         var head = map.getFirst();
-        ball.requestReflectY(head.y() * CELL_SIZE);
-        matrix[head.y()][head.x()] = 0;
+        ball.requestReflectY((head.y() + 1) * CELL_SIZE);
+        brickBreakRequests.add(new IntXY(head.x(), head.y()));
+
+//        matrix[head.y()][head.x()] = 0;
       }
     }
     for (Ball ball : balls) {
       ball.update(now, last);
     }
+    for (var r : brickBreakRequests) {
+      matrix[r.y()][r.x()] = 0;
+    }
+    brickBreakRequests.clear();
 
     last = now;
 
@@ -75,28 +85,48 @@ public class Bricks {
       }
     }
     g.setFill(Color.WHITE);
-//    g.setStroke(Color.WHITE);
     for (Ball ball : balls) {
+      double cx = ball.x, cy = ball.y;
+
       g.setStroke(Color.WHITE);
-      g.setLineWidth(1.5);
-      g.strokeLine(ball.x, ball.y, ball.x - ball.dx, ball.y - ball.dy);
-      g.setLineWidth(3);
-      g.strokeLine(ball.x, ball.y, ball.x - ball.dx / 2, ball.y - ball.dy / 2);
+      g.setLineWidth(2.0);
+
+      renderTrail(g, cx, cy, ball.breakpoints, 0, 15.0, 3.0);
+
       g.setStroke(Color.RED);
       g.setLineWidth(1.5);
       g.strokeLine(ball.x, ball.y, ball.x + ball.dx, ball.y + ball.dy);
-//      g.setLineWidth(0.5);
-//      g.strokeLine(ball.x, ball.y, ball.x - ball.dx * 9, ball.y -ball.dy * 9);
-//      g.setLineWidth(1.0);
-//      g.strokeLine(ball.x, ball.y, ball.x - ball.dx * 4.5, ball.y -ball.dy * 4.5);
-//      g.setLineWidth(1.5);
-//      g.strokeLine(ball.x, ball.y, ball.x - ball.dx * 3, ball.y -ball.dy * 3);
-//      g.setLineWidth(2.0);
-//      g.strokeLine(ball.x, ball.y, ball.x - ball.dx * 2.25, ball.y -ball.dy * 2.25);
-//      g.setLineWidth(3.0);
-//      g.strokeLine(ball.x, ball.y, ball.x - ball.dx, ball.y -ball.dy);
     }
   }
+
+  private void renderTrail(GraphicsContext g, double cx, double cy, ArrayList<Point> breakpoints, int index, double remainTrail, double width) {
+    double memoryTrail = remainTrail;
+    g.setLineWidth(width);
+    for (; index < breakpoints.size(); index += 1) {
+      Point p = breakpoints.get(index);
+      double dx = cx - p.x(), dy = cy - p.y();
+      double dis = Math.sqrt(dx * dx + dy * dy);
+      if (remainTrail > dis) {
+        g.strokeLine(cx, cy, p.x(), p.y());
+        cx = p.x();
+        cy = p.y();
+        remainTrail -= dis;
+      } else {
+        double r = remainTrail / dis;
+        double q = 1 - r;
+        double nextX = r * p.x() + q * cx;
+        double nextY = r * p.y() + q * cy;
+        g.strokeLine(cx, cy, nextX, nextY);
+        if (width > 0.5) renderTrail(g, nextX, nextY, breakpoints, index, memoryTrail * 1.5, width - 0.5);
+        else {
+          int ahead = index + 1;
+          while (ahead < breakpoints.size()) breakpoints.remove(ahead);
+        }
+        break;
+      }
+    }
+  }
+
 
 
 

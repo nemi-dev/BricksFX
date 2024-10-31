@@ -22,18 +22,16 @@ public class CanvasControl {
     g = canvas.getGraphicsContext2D();
     bricks = new Bricks();
 
-//        timer = new Loop(g, bricks);
-//        timer.start();
+    timer = new Loop(g, bricks);
+    timer.start();
 
-    canvas.setFocusTraversable(true);
-
-    handleOnce();
+//    canvas.setFocusTraversable(true);
+//    handleOnce();
   }
 
 
   @FXML
   void handleKeyPress(KeyEvent ev) {
-    System.out.println(ev);
     if (ev.getCode() == KeyCode.ENTER)
       handleOnce();
   }

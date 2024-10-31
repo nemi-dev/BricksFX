@@ -9,9 +9,9 @@ import static dev.nemi.bricksfx.model.Bricks.CELL_SIZE;
 
 public class Bresenham {
   @NotNull
-  public static ArrayList<Pair> wouldHit(float x, float y, float dx, float dy, int[][] grid) {
+  public static ArrayList<IntXY> wouldHit(double x, double y, double dx, double dy, int[][] grid) {
 
-    ArrayList<Pair> crossedCells = new ArrayList<>();
+    ArrayList<IntXY> crossedCells = new ArrayList<>();
 
     // Calculate the starting and ending positions
     int startX = (int) Math.floor(x / CELL_SIZE);
@@ -35,7 +35,7 @@ public class Bresenham {
       int error = deltaX / 2;
       while (startX != endX) {
         try {
-          if (grid[startY][startX] != 0) crossedCells.add(new Pair(startX, startY));
+          if (grid[startY][startX] != 0) crossedCells.add(new IntXY(startX, startY));
         } catch (ArrayIndexOutOfBoundsException _) {}
         error -= deltaY;
         if (error < 0) {
@@ -48,7 +48,7 @@ public class Bresenham {
       int error = deltaY / 2;
       while (startY != endY) {
         try {
-          if (grid[startY][startX] != 0) crossedCells.add(new Pair(startX, startY));
+          if (grid[startY][startX] != 0) crossedCells.add(new IntXY(startX, startY));
         } catch (ArrayIndexOutOfBoundsException _) {}
         error -= deltaX;
         if (error < 0) {
@@ -61,7 +61,7 @@ public class Bresenham {
 
     // Final check at the endpoint
     try {
-      if (grid[endY][endX] != 0) crossedCells.add(new Pair(endX, endY));
+      if (grid[endY][endX] != 0) crossedCells.add(new IntXY(endX, endY));
     } catch (ArrayIndexOutOfBoundsException _) {}
 
     return crossedCells;
