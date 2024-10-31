@@ -49,10 +49,6 @@ public class Bricks {
     // collision test
     for (Ball ball : balls) {
       ArrayList<Pair> map = Bresenham.wouldHit(ball.x, ball.y, ball.dx, ball.dy, matrix);
-//      if (!map.isEmpty()) System.out.println(map.getFirst());
-//      for (Pair pair : map) {
-//        matrix[pair.y()][pair.x()] = 0;
-//      }
       if (!map.isEmpty()) {
         var head = map.getFirst();
         ball.requestReflectY(head.y() * CELL_SIZE);
@@ -69,30 +65,36 @@ public class Bricks {
 
   public void render(GraphicsContext g) {
     g.setFill(Color.rgb(0, 128, 255, 1.0));
-//    g.setStroke(Color.rgb(0, 128, 255, 1.0));
     for (int r = 0; r < COUNT_COLUMN_DIRECTION; r += 1) {
       for (int c = 0; c < COUNT_ROW_DIRECTION; c += 1) {
         if (matrix[r][c] > 0) {
           double x = c * CELL_SIZE;
           double y = r * CELL_SIZE;
           g.fillRect(x, y, CELL_SIZE, CELL_SIZE);
-//          g.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
         }
       }
     }
     g.setFill(Color.WHITE);
-    g.setStroke(Color.WHITE);
+//    g.setStroke(Color.WHITE);
     for (Ball ball : balls) {
-      g.setLineWidth(0.5);
-      g.strokeLine(ball.x, ball.y, ball.x - ball.dx * 9, ball.y -ball.dy * 9);
-      g.setLineWidth(1.0);
-      g.strokeLine(ball.x, ball.y, ball.x - ball.dx * 4.5, ball.y -ball.dy * 4.5);
+      g.setStroke(Color.WHITE);
       g.setLineWidth(1.5);
-      g.strokeLine(ball.x, ball.y, ball.x - ball.dx * 3, ball.y -ball.dy * 3);
-      g.setLineWidth(2.0);
-      g.strokeLine(ball.x, ball.y, ball.x - ball.dx * 2.25, ball.y -ball.dy * 2.25);
-      g.setLineWidth(3.0);
-      g.strokeLine(ball.x, ball.y, ball.x - ball.dx, ball.y -ball.dy);
+      g.strokeLine(ball.x, ball.y, ball.x - ball.dx, ball.y - ball.dy);
+      g.setLineWidth(3);
+      g.strokeLine(ball.x, ball.y, ball.x - ball.dx / 2, ball.y - ball.dy / 2);
+      g.setStroke(Color.RED);
+      g.setLineWidth(1.5);
+      g.strokeLine(ball.x, ball.y, ball.x + ball.dx, ball.y + ball.dy);
+//      g.setLineWidth(0.5);
+//      g.strokeLine(ball.x, ball.y, ball.x - ball.dx * 9, ball.y -ball.dy * 9);
+//      g.setLineWidth(1.0);
+//      g.strokeLine(ball.x, ball.y, ball.x - ball.dx * 4.5, ball.y -ball.dy * 4.5);
+//      g.setLineWidth(1.5);
+//      g.strokeLine(ball.x, ball.y, ball.x - ball.dx * 3, ball.y -ball.dy * 3);
+//      g.setLineWidth(2.0);
+//      g.strokeLine(ball.x, ball.y, ball.x - ball.dx * 2.25, ball.y -ball.dy * 2.25);
+//      g.setLineWidth(3.0);
+//      g.strokeLine(ball.x, ball.y, ball.x - ball.dx, ball.y -ball.dy);
     }
   }
 

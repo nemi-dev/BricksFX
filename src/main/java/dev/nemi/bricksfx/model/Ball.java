@@ -47,8 +47,6 @@ public class Ball {
 
     x = fx;
     y = fy;
-//    reflectXAt = null;
-//    reflectYAt = null;
   }
 
   float getReflect(float predict, float onto) {
