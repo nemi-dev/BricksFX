@@ -2,11 +2,11 @@ package dev.nemi.bricksfx;
 
 import org.jetbrains.annotations.Contract;
 
-public record IntXY(int x, int y) {
+public record MatrixCoord(int row, int col) {
   @Contract(pure = true)
   public Integer on(int[][] matrix) {
     try {
-      return matrix[y][x];
+      return matrix[row][col];
     } catch (ArrayIndexOutOfBoundsException e) {
       return null;
     }

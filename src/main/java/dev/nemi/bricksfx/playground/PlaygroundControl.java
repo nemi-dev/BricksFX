@@ -1,6 +1,7 @@
 package dev.nemi.bricksfx.playground;
 
 
+import dev.nemi.bricksfx.IntXY;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -8,24 +9,31 @@ import javafx.scene.control.Spinner;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 
+import java.util.List;
+
 public class PlaygroundControl {
 
   @FXML
   private Canvas canvas;
-  private GraphicsContext gc;
+  private GraphicsContext g;
 
   @FXML
   private Spinner<Integer> sizeSpinner;
 
-  private int count = 5;
-  private int[][] matrix = new int[count][count];
 
-  private int fillCellMode = 0;
 
   private Double startX = null;
   private Double startY = null;
   private Double endX = null;
   private Double endY = null;
+
+  private int count = 5;
+  private double cellSize = 800.0 / count;
+  private int[][] matrix = new int[count][count];
+
+  private int fillCellMode = 0;
+
+  private List<IntXY> domains = null;
 
   private void fillMat() {
     for (int i = 0; i < count; i++) {
@@ -42,7 +50,7 @@ public class PlaygroundControl {
   @FXML
   public void initialize() {
     fillMat();
-    gc = canvas.getGraphicsContext2D();
+    g = canvas.getGraphicsContext2D();
     sizeSpinner.valueProperty().addListener((observable, oldValue, newValue) -> {
       setCount(newValue);
     });
@@ -50,31 +58,46 @@ public class PlaygroundControl {
   }
 
   public void paint() {
-    double fraction = 800.0 / count;
 
-    gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-    gc.setFill(Color.rgb(255, 255, 255, 0.25));
-    gc.setStroke(Color.rgb(255, 255, 255, 0.75));
-    gc.setLineWidth(0.5);
-    for (int i = 0; i < count; i++) {
-      for (int j = 0; j < count; j++) {
-        if (matrix[i][j] > 0) {
-          gc.fillRect(fraction * i, fraction * j, fraction, fraction);
+    g.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+    g.setFill(Color.rgb(255, 255, 255, 0.25));
+    g.setStroke(Color.rgb(255, 255, 255, 0.75));
+    g.setLineWidth(0.5);
+    for (int r = 0; r < count; r++) {
+      for (int c = 0; c < count; c++) {
+        if (matrix[r][c] > 0) {
+          g.fillRect(cellSize * c, cellSize * r, cellSize, cellSize);
         }
-        gc.strokeRect(fraction * i, fraction * j, fraction, fraction);
+        g.strokeRect(cellSize * c, cellSize * r, cellSize, cellSize);
 
       }
     }
+    if (domains != null) {
+      int index = 0;
+      for (IntXY coord : domains) {
+        g.setFill(Color.rgb(255, 117, 224, 0.25));
+        g.fillRect(cellSize * coord.x(), cellSize * coord.y(), cellSize, cellSize);
+        Integer on = coord.on(matrix);
+        if (on != null && on > 0) {
+          g.setFill(Color.WHITE);
+          g.fillText(String.valueOf(index), cellSize * (coord.x() + 0.5), cellSize * (coord.y() + 0.5));
+          index += 1;
+        }
+      }
+    }
     if (startX != null && startY != null && endX != null && endY != null) {
-      gc.setLineWidth(1.0);
-      gc.setStroke(Color.rgb(0, 192, 255, 1.0));
-      gc.strokeLine(startX, startY, endX, endY);
+      g.setLineWidth(1.0);
+      g.setStroke(Color.rgb(0, 192, 255, 1.0));
+      g.strokeLine(startX, startY, endX, endY);
     }
   }
 
   public void setCount(int newValue) {
     count = newValue;
     matrix = new int[count][count];
+    cellSize = 800.0 / count;
+    if (startX != null && startY != null && endX != null && endY != null)
+      domains = Griding.getDomains(startX, startY, endX, endY, cellSize);
     fillMat();
     paint();
   }
@@ -86,12 +109,13 @@ public class PlaygroundControl {
         startY = event.getY();
         endX = event.getX();
         endY = event.getY();
+        domains = Griding.getDomains(startX, startY, endX, endY, cellSize);
       }
       case SECONDARY -> {
         int c = quantize(event.getX());
         int r = quantize(event.getY());
-        fillCellMode = matrix[c][r] > 0? 0 : 1;
-        matrix[c][r] = fillCellMode;
+        fillCellMode = matrix[r][c] > 0? 0 : 1;
+        matrix[r][c] = fillCellMode;
       }
     }
 
@@ -103,11 +127,12 @@ public class PlaygroundControl {
       case PRIMARY -> {
         endX = event.getX();
         endY = event.getY();
+        domains = Griding.getDomains(startX, startY, endX, endY, cellSize);
       }
       case SECONDARY -> {
         int c = quantize(event.getX());
         int r = quantize(event.getY());
-        matrix[c][r] = fillCellMode;
+        matrix[r][c] = fillCellMode;
       }
     }
     paint();
