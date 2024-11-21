@@ -9,7 +9,7 @@ import javafx.stage.Stage;
 public class Playground extends Application {
   @Override
   public void start(Stage stage) throws Exception {
-    FXMLLoader fxmlLoader = new FXMLLoader(BricksApp.class.getResource("bricks-view.fxml"));
+    FXMLLoader fxmlLoader = new FXMLLoader(BricksApp.class.getResource("playground-view.fxml"));
     Scene scene = new Scene(fxmlLoader.load());
     stage.setTitle("BricksFX");
     stage.setScene(scene);
