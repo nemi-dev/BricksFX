@@ -1,18 +1,14 @@
-package dev.nemi.bricksfx;
+package dev.nemi.bricksfx.playground;
 
+import dev.nemi.bricksfx.BricksApp;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
-import java.io.IOException;
-
-public class BricksApp extends Application {
+public class Playground extends Application {
   @Override
-  public void start(Stage stage) throws IOException {
+  public void start(Stage stage) throws Exception {
     FXMLLoader fxmlLoader = new FXMLLoader(BricksApp.class.getResource("bricks-view.fxml"));
     Scene scene = new Scene(fxmlLoader.load());
     stage.setTitle("BricksFX");
@@ -21,6 +17,6 @@ public class BricksApp extends Application {
   }
 
   public static void main(String[] args) {
-    launch();
+    launch(args);
   }
 }

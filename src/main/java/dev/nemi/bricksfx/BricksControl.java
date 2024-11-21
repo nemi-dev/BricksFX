@@ -8,7 +8,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
-public class CanvasControl {
+public class BricksControl {
 
   @FXML
   private Canvas canvas;
@@ -21,12 +21,12 @@ public class CanvasControl {
   public void initialize() {
     g = canvas.getGraphicsContext2D();
     bricks = new Bricks();
+    canvas.setFocusTraversable(true);
 
-    timer = new Loop(g, bricks);
-    timer.start();
+//    timer = new Loop(g, bricks);
+//    timer.start();
 
-//    canvas.setFocusTraversable(true);
-//    handleOnce();
+    handleOnce();
   }
 
 

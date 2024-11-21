@@ -12,7 +12,7 @@ import java.util.Random;
 import java.util.Vector;
 
 public class Bricks {
-  public static final int CELL_SIZE = 5;
+  public static final int CELL_SIZE = 25;
   public static final int COUNT_ROW_DIRECTION = 800 / CELL_SIZE;
   public static final int COUNT_COLUMN_DIRECTION = COUNT_ROW_DIRECTION / 2;
 
@@ -37,10 +37,12 @@ public class Bricks {
     }
 
     Random random = new Random();
-    double vel = 18;
+    double vel = 120.0;
     for (int i = 0; i < 9; i++) {
-      double angle = random.nextDouble() * Math.PI * 2;
+//      double angle = Math.PI / 14 * (i + 1) + random.nextDouble(0.75);
+      double angle = Math.PI / 6;
       addBall(400f, 600f, (float) (vel * Math.cos(angle)), (float) (vel * Math.sin(angle)));
+      break;
     }
 
   }
@@ -52,7 +54,8 @@ public class Bricks {
   public void update(long now) {
     // collision test
     for (Ball ball : balls) {
-      ArrayList<IntXY> map = Bresenham.wouldHit(ball.x, ball.y, ball.dx, ball.dy, matrix);
+//      ArrayList<IntXY> map = Bresenham.wouldHit(ball.x, ball.y, ball.dx, ball.dy, matrix);
+      ArrayList<IntXY> map = Bresenham.would2hit(ball.x, ball.y, ball.dx, ball.dy, matrix);
       if (!map.isEmpty()) {
         var head = map.getFirst();
         ball.requestReflectY((head.y() + 1) * CELL_SIZE);
@@ -75,12 +78,16 @@ public class Bricks {
 
   public void render(GraphicsContext g) {
     g.setFill(Color.rgb(0, 128, 255, 1.0));
+    g.setStroke(Color.rgb(128, 224, 255, 1.0));
+    g.setLineWidth(0.5);
     for (int r = 0; r < COUNT_COLUMN_DIRECTION; r += 1) {
       for (int c = 0; c < COUNT_ROW_DIRECTION; c += 1) {
         if (matrix[r][c] > 0) {
           double x = c * CELL_SIZE;
           double y = r * CELL_SIZE;
           g.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+          g.strokeLine(x, y, x + CELL_SIZE, y);
+          g.strokeLine(x, y, x, y + CELL_SIZE);
         }
       }
     }
