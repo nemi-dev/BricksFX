@@ -9,6 +9,12 @@ import java.util.List;
 
 public class Griding {
 
+  public static boolean between(int start, int center, int end) {
+    int d = (int) Math.signum(end - start);
+    if (d == 0) return start == center;
+    return start * d <= center * d && center * d <= end * d;
+  }
+
   @Contract(pure = true)
   public static int quantize(double v, double cellSize) { return (int) Math.floor(v / cellSize); }
 
