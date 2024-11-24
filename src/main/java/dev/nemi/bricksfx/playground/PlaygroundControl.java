@@ -1,7 +1,10 @@
 package dev.nemi.bricksfx.playground;
 
 
+import dev.nemi.bricksfx.Griding;
+import dev.nemi.bricksfx.HitInfo;
 import dev.nemi.bricksfx.IntXY;
+import dev.nemi.bricksfx.Line;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -9,6 +12,7 @@ import javafx.scene.control.Spinner;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -24,11 +28,11 @@ public class PlaygroundControl {
   private Spinner<Integer> sizeSpinner;
 
 
-
-  private Double startX = null;
-  private Double startY = null;
-  private Double endX = null;
-  private Double endY = null;
+  private Line line = null;
+//  private Double startX = null;
+//  private Double startY = null;
+//  private Double endX = null;
+//  private Double endY = null;
 
   private int count = 25;
   private double cellSize = 800.0 / count;
@@ -41,7 +45,7 @@ public class PlaygroundControl {
   private int endC = -1;
   private boolean drawingSquare = false;
 
-  private List<IntXY> domains = null;
+  private List<HitInfo> domains = null;
 
   private void fillMat() {
     for (int i = 0; i < count; i++) {
@@ -65,13 +69,13 @@ public class PlaygroundControl {
     paint();
   }
 
-
   public void setCount(int newValue) {
     count = newValue;
     matrix = new int[count][count];
     cellSize = 800.0 / count;
-    if (startX != null && startY != null && endX != null && endY != null)
-      domains = Griding.getDomains(startX, startY, endX, endY, cellSize);
+//    if (startX != null && startY != null && endX != null && endY != null)
+    if (line != null)
+      domains = Griding.getDomains(line, cellSize);
     fillMat();
     paint();
   }
@@ -79,11 +83,12 @@ public class PlaygroundControl {
   public void onCanvasMouseDown(MouseEvent event) {
     switch (event.getButton()) {
       case PRIMARY -> {
-        startX = event.getX();
-        startY = event.getY();
-        endX = event.getX();
-        endY = event.getY();
-        domains = Griding.getDomains(startX, startY, endX, endY, cellSize);
+        line = new Line(event.getX(), event.getY(), event.getX(), event.getY());
+//        line.startX = event.getX();
+//        line.startY = event.getY();
+//        line.endX = event.getX();
+//        line.endY = event.getY();
+        domains = Griding.getDomains(line, cellSize);
       }
       case SECONDARY -> {
         int c = quantize(event.getX());
@@ -103,9 +108,9 @@ public class PlaygroundControl {
   public void onCanvasMouseDrag(MouseEvent event) {
     switch (event.getButton()) {
       case PRIMARY -> {
-        endX = event.getX();
-        endY = event.getY();
-        domains = Griding.getDomains(startX, startY, endX, endY, cellSize);
+        line.endX = event.getX();
+        line.endY = event.getY();
+        domains = Griding.getDomains(line, cellSize);
       }
       case SECONDARY -> {
         int currentC = quantize(event.getX());
@@ -145,6 +150,8 @@ public class PlaygroundControl {
     }
   }
 
+
+
   public void paint() {
 
     g.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
@@ -168,21 +175,29 @@ public class PlaygroundControl {
     }
     if (domains != null) {
       int index = 0;
-      for (IntXY coord : domains) {
+      for (HitInfo hitInfo : domains) {
         g.setFill(Color.rgb(255, 117, 224, 0.25));
-        g.fillRect(cellSize * coord.x(), cellSize * coord.y(), cellSize, cellSize);
-        Integer on = coord.on(matrix);
+        g.fillRect(cellSize * hitInfo.x(), cellSize * hitInfo.y(), cellSize, cellSize);
+        Integer on = hitInfo.on(matrix);
         if (on != null && on > 0) {
           g.setFill(Color.WHITE);
-          g.fillText(String.valueOf(index), cellSize * (coord.x() + 0.5), cellSize * (coord.y() + 0.5));
+          g.fillText(String.valueOf(index), cellSize * (hitInfo.x() + 0.5), cellSize * (hitInfo.y() + 0.5));
           index += 1;
+        }
+        g.setFill(Color.rgb(204, 128,255, 0.5));
+        switch (hitInfo.side()) {
+          case HitInfo.TOP -> g.fillRect(cellSize * hitInfo.x(), cellSize * hitInfo.y(), cellSize, 5);
+          case HitInfo.RIGHT -> g.fillRect(cellSize * (hitInfo.x() + 1) - 5, cellSize * hitInfo.y(), 5, cellSize);
+          case HitInfo.BOTTOM -> g.fillRect(cellSize * hitInfo.x(), cellSize * (hitInfo.y() + 1) - 5, cellSize, 5);
+          case HitInfo.LEFT -> g.fillRect(cellSize * hitInfo.x(), cellSize * hitInfo.y(), 5, cellSize);
+          case HitInfo.INSIDE -> g.fillOval(cellSize * (hitInfo.x() + 0.5) - 2.5, cellSize * (hitInfo.y() + 0.5) - 2.5, 5, 5);
         }
       }
     }
-    if (startX != null && startY != null && endX != null && endY != null) {
+    if (line != null) {
       g.setLineWidth(1.0);
       g.setStroke(Color.rgb(0, 192, 255, 1.0));
-      g.strokeLine(startX, startY, endX, endY);
+      g.strokeLine(line.startX, line.startY, line.endX, line.endY);
     }
   }
 

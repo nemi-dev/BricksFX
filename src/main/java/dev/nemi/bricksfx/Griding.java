@@ -1,6 +1,5 @@
-package dev.nemi.bricksfx.playground;
+package dev.nemi.bricksfx;
 
-import dev.nemi.bricksfx.IntXY;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,11 +14,16 @@ public class Griding {
     return start * d <= center * d && center * d <= end * d;
   }
 
+  public static double reflection(double in, double k) {
+    return 2 * k - in;
+  }
+
   @Contract(pure = true)
   public static int quantize(double v, double cellSize) { return (int) Math.floor(v / cellSize); }
 
-  public static @NotNull List<IntXY> getDomains(double startX, double startY, double endX, double endY, double cellSize) {
-    List<IntXY> domains = new ArrayList<>();
+  @Contract(pure = true)
+  public static @NotNull List<HitInfo> getDomains(double startX, double startY, double endX, double endY, double cellSize) {
+    List<HitInfo> domains = new ArrayList<>();
     final int startCX = (int) (startX / cellSize);
     final int startCY = (int) (startY / cellSize);
     final int endCX = (int) (endX / cellSize);
@@ -29,16 +33,21 @@ public class Griding {
 
     if (startCX == endCX) {
       if (startCY == endCY) {
-        domains.add(new IntXY(startCX, startCY));
+        // Ends up inside
+        domains.add(new HitInfo(startCX, startCY, HitInfo.INSIDE));
         return domains;
       }
+      // Vertical Steep
       for (int i = startCY; i * dirY <= endCY * dirY; i += dirY) {
-        domains.add(new IntXY(startCX, i));
+        int side = i == startCY ? HitInfo.INSIDE : dirY == 1 ? HitInfo.TOP : HitInfo.BOTTOM;
+        domains.add(new HitInfo(startCX, i, side));
       }
       return domains;
     } else if (startCY == endCY) {
+      // Flat Horizontal
       for (int i = startCX; i * dirX <= endCX * dirX; i += dirX) {
-        domains.add(new IntXY(i, startCY));
+        int side = i == startCX ? HitInfo.INSIDE : dirX == 1 ? HitInfo.LEFT : HitInfo.RIGHT;
+        domains.add(new HitInfo(i, startCY, side));
       }
       return domains;
     }
@@ -50,20 +59,28 @@ public class Griding {
     int curIX = startCX;
     int curIY = startCY;
 
+    int vside = dirY > 0 ? HitInfo.TOP : HitInfo.BOTTOM;
+    int hside = dirX > 0 ? HitInfo.LEFT : HitInfo.RIGHT;
     if (skew > 1 || skew < -1) {
       while (curIX * dirX <= endCX * dirX) {
         double nextX = (curIX + (dirX == 1? 1 : 0)) * cellSize;
         if (nextX * dirX > endX * dirX) nextX = endX;
 
         if (endX == currentX) {
-          domains.add(new IntXY(curIX, curIY));
+          domains.add(new HitInfo(curIX, curIY, hside));
           return domains;
         }
         double nextY = currentY + (nextX - currentX) * skew;
 
         int nextIY = quantize(nextY, cellSize);
         for (int i = curIY; i * dirY <= nextIY * dirY; i += dirY) {
-          domains.add(new IntXY(curIX, i));
+          int side;
+          if (curIY == i) {
+            side = curIX == startCX ? HitInfo.INSIDE : hside;
+          } else {
+            side = vside;
+          }
+          domains.add(new HitInfo(curIX, i, side));
         }
 
         currentX = nextX;
@@ -77,14 +94,20 @@ public class Griding {
         if (nextY * dirY > endY * dirY) nextY = endY;
 
         if (endY == currentY) {
-          domains.add(new IntXY(curIX, curIY));
+          domains.add(new HitInfo(curIX, curIY, vside));
           return domains;
         }
 
         double nextX = currentX + (nextY - currentY) / skew;
         int nextIX = quantize(nextX, cellSize);
         for (int i = curIX; i * dirX <= nextIX * dirX; i += dirX) {
-          domains.add(new IntXY(i, curIY));
+          int side;
+          if (curIX == i) {
+            side = curIY == startCX ? HitInfo.INSIDE : vside;
+          } else {
+            side = hside;
+          }
+          domains.add(new HitInfo(i, curIY, side));
         }
 
         currentY = nextY;
@@ -94,6 +117,10 @@ public class Griding {
       }
     }
     return domains;
+  }
+
+  public static @NotNull List<HitInfo> getDomains(Line line, double cellSize) {
+    return getDomains(line.startX, line.startY, line.endX, line.endY, cellSize);
   }
 
 }

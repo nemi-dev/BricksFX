@@ -1,20 +1,17 @@
 package dev.nemi.bricksfx.model;
 
-import dev.nemi.bricksfx.Bresenham;
-import dev.nemi.bricksfx.IntXY;
-import dev.nemi.bricksfx.Point;
+import dev.nemi.bricksfx.*;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Random;
-import java.util.Vector;
+import java.util.*;
 
 public class Bricks {
-  public static final int CELL_SIZE = 25;
-  public static final int COUNT_ROW_DIRECTION = 800 / CELL_SIZE;
-  public static final int COUNT_COLUMN_DIRECTION = COUNT_ROW_DIRECTION / 2;
+  public static final int COL_COUNT = 10;
+  public static final int ROW_COUNT = COL_COUNT / 2;
+
+  public static final double CELL_SIZE = 800.0 / COL_COUNT;
+//  public static final int COUNT_ROW_DIRECTION = 800 / CELL_SIZE;
 
   private int[][] matrix;
   private LinkedList<Ball> balls;
@@ -27,48 +24,98 @@ public class Bricks {
   }
 
   public void init() {
-    matrix = new int[COUNT_COLUMN_DIRECTION][COUNT_ROW_DIRECTION];
+    matrix = new int[ROW_COUNT][COL_COUNT];
     balls = new LinkedList<>();
 
-    for (int i = 0; i < COUNT_COLUMN_DIRECTION; i++) {
-      for (int j = 0; j < COUNT_ROW_DIRECTION; j++) {
+    for (int i = 0; i < ROW_COUNT; i++) {
+      for (int j = 0; j < COL_COUNT; j++) {
         matrix[i][j] = 1;
       }
     }
 
     Random random = new Random();
-    double vel = 120.0;
-    for (int i = 0; i < 9; i++) {
-//      double angle = Math.PI / 14 * (i + 1) + random.nextDouble(0.75);
-      double angle = Math.PI / 6;
-      addBall(400f, 600f, (float) (vel * Math.cos(angle)), (float) (vel * Math.sin(angle)));
-      break;
+    double vel = 92.0;
+    for (int i = 0; i < 3; i++) {
+      double angle = Math.PI / 14 * (i + 1) + random.nextDouble(0.75);
+//      double angle = Math.PI / 6;
+      addBall(400, 600, (vel * Math.cos(angle)), (vel * Math.sin(angle)));
     }
 
   }
 
-  void addBall(float x, float y, float dx, float dy) {
+  void addBall(double x, double y, double dx, double dy) {
     balls.add(new Ball(x, y, dx, dy));
   }
 
   public void update(long now) {
-    // collision test
+    // resolve ball hit predict
     for (Ball ball : balls) {
-//      ArrayList<IntXY> map = Bresenham.wouldHit(ball.x, ball.y, ball.dx, ball.dy, matrix);
-      ArrayList<IntXY> map = Bresenham.would2hit(ball.x, ball.y, ball.dx, ball.dy, matrix);
-      if (!map.isEmpty()) {
-        var head = map.getFirst();
-        ball.requestReflectY((head.y() + 1) * CELL_SIZE);
-        brickBreakRequests.add(new IntXY(head.x(), head.y()));
+      Line current = new Line(ball.x, ball.y,ball.x + ball.dx, ball.y + ball.dy);
+      while (true) {
+        List<HitInfo> domains = Griding.getDomains(current, CELL_SIZE);
+        Line next = null;
+        for (HitInfo hitInfo : domains) {
+          Integer r = hitInfo.on(matrix);
+          if (r != null && r > 0) {
+            switch (hitInfo.side()) {
+              case HitInfo.TOP -> {
+                next = current.foldY(CELL_SIZE * hitInfo.y());
+                ball.flipDY();
+              }
+              case HitInfo.RIGHT -> {
+                next = current.foldX(CELL_SIZE * (hitInfo.x() + 1));
+                ball.flipDX();
+              }
+              case HitInfo.BOTTOM -> {
+                next = current.foldY(CELL_SIZE * (hitInfo.y() + 1));
+                ball.flipDX();
+              }
+              case HitInfo.LEFT -> {
+                next = current.foldX(CELL_SIZE * hitInfo.x());
+                ball.flipDY();
+              }
+              default -> current = null;
+            }
+            brickBreakRequests.add(hitInfo.intXY());
+            break;
+          }
+          // no reflection upon active block found
+          if (current.endX < 0) {
+            next = current.foldX(0);
+            ball.dx = Math.abs(ball.dx);
+          }
+          else if (current.endX > 800) {
+            next = current.foldX(800);
+//            ball.flipDX();
+            ball.dx = -Math.abs(ball.dx);
+          }
+          else if (current.endY < 0) {
+            next = current.foldY(0);
+//            ball.flipDY();
+            ball.dy = Math.abs(ball.dy);
+          }
+          else if (current.endY > 800) {
+            next = current.foldY(800);
+//            ball.flipDY();
+            ball.dy = -Math.abs(ball.dy);
+          }
+        }
+        if (next == null) break;
+        ball.addBreakpoint(next.startX, next.startY);
+        ball.pushPosition(next.endX, next.endY);
+        System.out.println(next.length());
 
-//        matrix[head.y()][head.x()] = 0;
+        current = next;
       }
     }
     for (Ball ball : balls) {
       ball.update(now, last);
     }
     for (var r : brickBreakRequests) {
-      matrix[r.y()][r.x()] = 0;
+      try {
+        matrix[r.y()][r.x()] = 0;
+      } catch (ArrayIndexOutOfBoundsException e) {
+      }
     }
     brickBreakRequests.clear();
 
@@ -80,8 +127,8 @@ public class Bricks {
     g.setFill(Color.rgb(0, 128, 255, 1.0));
     g.setStroke(Color.rgb(128, 224, 255, 1.0));
     g.setLineWidth(0.5);
-    for (int r = 0; r < COUNT_COLUMN_DIRECTION; r += 1) {
-      for (int c = 0; c < COUNT_ROW_DIRECTION; c += 1) {
+    for (int r = 0; r < ROW_COUNT; r += 1) {
+      for (int c = 0; c < COL_COUNT; c += 1) {
         if (matrix[r][c] > 0) {
           double x = c * CELL_SIZE;
           double y = r * CELL_SIZE;
